@@ -5,6 +5,9 @@ from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
+from carts.views import _cart_id
+from carts.models import Cart, CartItem
+import requests
 # verification email
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
@@ -63,9 +66,64 @@ def login(request):
         user = auth.authenticate(email=email, password=password)
 
         if user is not None:
+            try:
+                cart = Cart.objects.get(cart_id=_cart_id(request))
+                is_cart_item_exists = CartItem.objects.filter(cart=cart).exists()
+
+                if is_cart_item_exists:
+                    cart_item = CartItem.objects.filter(cart=cart)
+                    # getting product variation by cart id
+                    product_variation = []
+                    for item in cart_item:
+                        variation = item.variations.all()
+                        product_variation.append(list(variation))
+
+                        # get cat items from the user to access its product variations
+
+                        cart_item = CartItem.objects.filter(user=user)
+                        # existing variations -> database
+                        # current variation -> product variation
+                        # item_id -> database
+                        existing_variation_list = []
+                        id = []
+                        for item in cart_item:
+                            existing_variation = item.variations.all()
+                            existing_variation_list.append(list(existing_variation))
+                            id.append(item.id)
+
+                        # product_variation=[]
+                        # existing_variation_list
+                        for pr in product_variation:
+                            if pr in existing_variation_list:
+                                index = existing_variation_list(pr)
+                                item_id = id[index]
+                                item = CartItem.objects.get(product=product, id=item_id)
+                                item.quantity += 1
+                                item.user = user
+                                item.save()
+                            else:
+                                cart_item = CartItem.objects.filter(cart=cart)
+                                for item in cart_item:
+                                    item.user = user
+                                    item.save()
+
+
+            except:
+                pass
+
             auth.login(request, user)
             messages.success(request, 'Login in Successfully')
-            return redirect('dashboard')
+            url = request.META.get('HTTP_REFERER')
+            try:
+                query = requests.utils.urlparse(url).query
+                # next=/cart/checkout/
+                params = dict(x.split('=') for x in query.split('&'))
+                if 'next' in params:
+                    nextPage = params['next']
+                    return redirect(nextPage)
+            except:
+                return render('dashboard')
+
         else:
             messages.error(request, 'Invalid login Credentials')
             return redirect('login')
