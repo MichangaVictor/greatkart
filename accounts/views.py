@@ -96,9 +96,9 @@ def login(request):
                         # existing_variation_list
                         for pr in product_variation:
                             if pr in existing_variation_list:
-                                index = existing_variation_list(pr)
+                                index = existing_variation_list.index(pr)
                                 item_id = id[index]
-                                item = CartItem.objects.get(product=product, id=item_id)
+                                item = CartItem.objects.get(id=item_id)
                                 item.quantity += 1
                                 item.user = user
                                 item.save()
@@ -162,7 +162,7 @@ def dashboard(request):
     userprofile = UserProfile.objects.get(user_id=request.user.id)
     context = {
         'orders_count': orders_count,
-        'userprofile':userprofile
+        'userprofile': userprofile
     }
     return render(request, 'accounts/dashboard.html', context)
 
@@ -192,7 +192,6 @@ def forgotPassword(request):
         else:
             messages.error(request, 'Account Does not exist')
             return redirect('forgotPassword')
-
     return render(request, 'accounts/forgotPassword.html')
 
 

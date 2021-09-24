@@ -1,6 +1,4 @@
 import datetime
-import json
-
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from carts.models import Cart, CartItem
@@ -32,15 +30,15 @@ def payments(request):
     order.save()
     # Move the cart items  to order product table
 
-    cart_item = CartItem.objects.filter(user=request.user)
-    for item in cart_item:
+    cart_items = CartItem.objects.filter(user=request.user)
+    for item in cart_items:
         orderproduct = OrderProduct()
         orderproduct.order_id = order.id
         orderproduct.payment = payment
         orderproduct.user_id = request.user.id
         orderproduct.product_id = item.product_id
         orderproduct.quantity = item.quantity
-        orderproduct.product_price = item.product_price
+        orderproduct.product_price = item.product.price
         orderproduct.ordered = True
         orderproduct.save()
 
@@ -75,7 +73,7 @@ def payments(request):
         }
         return JsonResponse(data)
 
-    return render(request, 'orders/payments.html')
+    #return render(request, 'orders/payments.html')
 
 
 def place_order(request, total=0, quantity=0, ):

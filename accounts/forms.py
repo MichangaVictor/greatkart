@@ -4,7 +4,8 @@ from .models import Account, UserProfile
 
 class RegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={
-        'placeholder': 'Enter Password'
+        'placeholder': 'Enter Password',
+        'class': 'form-control',
 
     }))
     confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={
@@ -47,7 +48,9 @@ class UserForm(forms.ModelForm):
 
 
 class UserProfileForm(forms.ModelForm):
-    profile_picture = forms.ImageField(required=False, error_messages={'invalid':("Image files Only")}, widget=forms.FileInput)
+    profile_picture = forms.ImageField(required=False, error_messages={'invalid': ("Image files Only")},
+                                       widget=forms.FileInput)
+
     class Meta:
         model = UserProfile
         fields = ('address_line_1', 'address_line_2', 'city', 'state', 'country', 'profile_picture')
